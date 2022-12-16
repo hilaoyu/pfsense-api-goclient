@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"strconv"
-
-	"golang.org/x/exp/maps"
 )
 
 const (
@@ -19,18 +17,19 @@ type RoutingService service
 
 // Gateway represents a single routing gateway
 type Gateway struct {
-	Dynamic         bool   `json:"dynamic"`
-	IpProtocol      string `json:"ipprotocol"`
-	Gateway         string `json:"gateway"`
-	Interface       string `json:"interface"`
-	FriendlyIface   string `json:"friendlyiface"`
-	FriendlyIfDescr string `json:"friendlyifdescr"`
-	Name            string `json:"name"`
-	Attribute       string `json:"attribute"`
-	IsDefaultGW     bool   `json:"isdefaultgw"`
-	Monitor         string `json:"monitor"`
-	Descr           string `json:"descr"`
-	TierName        string `json:"tiername"`
+	Dynamic         bool        `json:"dynamic"`
+	IpProtocol      string      `json:"ipprotocol"`
+	Gateway         string      `json:"gateway"`
+	Interface       string      `json:"interface"`
+	FriendlyIface   string      `json:"friendlyiface"`
+	FriendlyIfDescr string      `json:"friendlyifdescr"`
+	Name            string      `json:"name"`
+	Attribute       StringOrInt `json:"attribute"`
+	IsDefaultGW     bool        `json:"isdefaultgw"`
+	Monitor         string      `json:"monitor"`
+	Descr           string      `json:"descr"`
+	TierName        string      `json:"tiername"`
+	Id              int         `json:"id"`
 }
 
 type gatewayListResponse struct {
@@ -50,33 +49,44 @@ func (s RoutingService) ListGateways(ctx context.Context) ([]*Gateway, error) {
 		return nil, err
 	}
 
-	return maps.Values(resp.Data), nil
+	//return maps.Values(resp.Data), nil
+
+	gateways := make([]*Gateway, 0, len(resp.Data))
+	i := 0
+	for _, gw := range resp.Data {
+		gw.Id = i
+		gateways = append(gateways, gw)
+		i++
+	}
+	return gateways, nil
+
 }
 
 // GatewayRequest represents a single gateway to be created or modified. This
 // type is use for creations and updates.
 type GatewayRequest struct {
-	ActionDisable  bool   `json:"action_disable"`
-	AlertInterval  int    `json:"alert_interval"`
+	ActionDisable  bool   `json:"action_disable,omitempty"`
+	AlertInterval  int    `json:"alert_interval,omitempty"`
 	Apply          bool   `json:"apply"`
-	DataPayload    int    `json:"data_payload"`
-	Descr          string `json:"descr"`
-	Disabled       bool   `json:"disabled"`
-	ForceDown      bool   `json:"force_down"`
-	Gateway        string `json:"gateway"`
-	Interface      string `json:"interface"`
-	Interval       int    `json:"interval"`
-	IpProtocol     string `json:"ipprotocol"`
-	LatencyHigh    int    `json:"latencyhigh"`
-	LatencyLow     int    `json:"latencylow"`
-	LossInterval   int    `json:"loss_interval"`
-	LossHigh       int    `json:"losshigh"`
-	LossLow        int    `json:"losslow"`
-	Monitor        string `json:"monitor"`
-	MonitorDisable bool   `json:"monitor_disable"`
-	Name           string `json:"name"`
-	TimePeriod     int    `json:"time_period"`
-	Weight         int    `json:"weight"`
+	DataPayload    int    `json:"data_payload,omitempty"`
+	Descr          string `json:"descr,omitempty"`
+	Disabled       bool   `json:"disabled,omitempty"`
+	ForceDown      bool   `json:"force_down,omitempty"`
+	Gateway        string `json:"gateway,omitempty"`
+	Interface      string `json:"interface,omitempty"`
+	Interval       int    `json:"interval,omitempty"`
+	IpProtocol     string `json:"ipprotocol,omitempty"`
+	LatencyHigh    int    `json:"latencyhigh,omitempty"`
+	LatencyLow     int    `json:"latencylow,omitempty"`
+	LossInterval   int    `json:"loss_interval,omitempty"`
+	LossHigh       int    `json:"losshigh,omitempty"`
+	LossLow        int    `json:"losslow,omitempty"`
+	Monitor        string `json:"monitor,omitempty"`
+	MonitorDisable bool   `json:"monitor_disable,omitempty"`
+	Name           string `json:"name,omitempty"`
+	TimePeriod     int    `json:"time_period,omitempty"`
+	Weight         int    `json:"weight,omitempty"`
+	Id             int    `json:"id"`
 }
 
 // CreateGateway creates a new Gateway

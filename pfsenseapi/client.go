@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -116,6 +117,10 @@ func (c *Client) do(ctx context.Context, method, endpoint string, queryMap map[s
 	req.URL.RawQuery = q.Encode()
 
 	req.Header.Add("Accept", "application/json")
+	if "put" == strings.ToLower(method) || "post" == strings.ToLower(method) {
+		req.Header.Add("CONTENT-TYPE", "application/json")
+	}
+
 	if c.Cfg.User != "" && c.Cfg.Password != "" {
 		req.SetBasicAuth(c.Cfg.User, c.Cfg.Password)
 	}
@@ -124,6 +129,9 @@ func (c *Client) do(ctx context.Context, method, endpoint string, queryMap map[s
 		req.Header.Add("Authorization", fmt.Sprintf("%s %s", c.Cfg.ApiClientID, c.Cfg.ApiClientToken))
 	}
 
+	//fmt.Println(req.URL.String())
+	//fmt.Println(string(body))
+	//fmt.Println("======")
 	return c.client.Do(req)
 }
 
@@ -141,6 +149,8 @@ func (c *Client) get(ctx context.Context, endpoint string, queryMap map[string]s
 	if err != nil {
 		return nil, err
 	}
+
+	//fmt.Println(string(body))
 
 	if res.StatusCode < 200 || res.StatusCode > 299 {
 		resp := new(apiResponse)
@@ -181,6 +191,7 @@ func (c *Client) post(ctx context.Context, endpoint string, queryMap map[string]
 
 func (c *Client) put(ctx context.Context, endpoint string, queryMap map[string]string, body []byte) ([]byte, error) {
 	res, err := c.do(ctx, http.MethodPut, endpoint, queryMap, body)
+
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +204,7 @@ func (c *Client) put(ctx context.Context, endpoint string, queryMap map[string]s
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println("respbody:", string(respbody))
 	if res.StatusCode < 200 || res.StatusCode > 299 {
 		resp := new(apiResponse)
 		if err = json.Unmarshal(respbody, resp); err != nil {
